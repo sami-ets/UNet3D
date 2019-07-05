@@ -16,7 +16,7 @@ segmenter:
 
 dataset:
   MRBrainS:
-    path: "/home/pierre-luc-delisle/Documents/Research/Code/UNet3D/data/MRBrainS_2013"
+    path: "data/MRBrainS_2013"
     validation_split: 0.2
     training:
       patch_size: [1, 32, 32, 32]
