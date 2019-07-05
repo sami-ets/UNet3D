@@ -84,6 +84,8 @@ If distributed :
 ```
 
 ### Main components
+This project is implemented with the high performance [APEX Library](https://github.com/NVIDIA/apex). APEX must be compiled prior running the training script.
+Default optimization is 'O2'. See [APEX optimization levels](https://nvidia.github.io/apex/amp.html#opt-levels) for more details.
 
 ## Contributing
 If you find a bug or have an idea for an improvement, please first have a look at our [contribution guideline](https://github.com/sami-ets/SAMITorch/blob/master/CONTRIBUTING.md). Then,
