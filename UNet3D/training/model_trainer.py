@@ -82,7 +82,7 @@ class ModelTrainer(Trainer):
                     out["loss"] = self._reduce_tensor(out["loss"].data)
                     metric = self._reduce_tensor(metric.data)
 
-                self._training_metric.update(metric.item())
+                self._training_metric.update(metric.item(), current_batch["X"].size(0))
                 self._training_loss.update(out["loss"].item(), current_batch["X"].size(0))
 
                 if self.config.running_config.local_rank == 0:
@@ -128,7 +128,7 @@ class ModelTrainer(Trainer):
 
                 self.config.metric.update((out["output"], current_batch["y"]))
 
-            self._validation_metric.update(self._compute_metric())
+            self._validation_metric.update(self._compute_metric(), current_batch["X"].size(0))
 
             if self.config.running_config.local_rank == 0:
                 self._log({"loss": self._validation_loss.average,
