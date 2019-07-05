@@ -131,7 +131,7 @@ class ModelTrainer(Trainer):
 
             self._validation_metric.update(self._compute_metric())
 
-            if self.config.running_config.local_rank == 0: 
+            if self.config.running_config.local_rank == 0:
                 self._log({"loss": self._validation_loss.average,
                            "metric": self._validation_metric.average,
                            "epoch_num": epoch_num}, training=False)
