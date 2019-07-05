@@ -21,7 +21,7 @@ from samitorch.configs.configurations import Configuration
 from samitorch.factories.parsers import AbstractConfigurationParserFactory
 from samitorch.configs.configurations import UNetModelConfiguration
 
-from UNet3D.config.configurations import UNet3DTestDatasetConfiguration, UNet3DTestTrainingConfiguration, \
+from UNet3D.config.configurations import UNet3DDatasetConfiguration, UNet3DTrainingConfiguration, \
     VariableConfiguration, LoggerConfiguration
 
 
@@ -59,7 +59,7 @@ class UNet3DDatasetConfigurationParserFactory(AbstractConfigurationParserFactory
         with open(path, 'r') as config_file:
             try:
                 config = yaml.load(config_file, Loader=yaml.FullLoader)
-                return UNet3DTestDatasetConfiguration(config["dataset"]["MRBrainS"])
+                return UNet3DDatasetConfiguration(config["dataset"]["MRBrainS"])
             except yaml.YAMLError as e:
                 logging.error(
                     "Unable to read the config file: {} with error {}".format(path, e))
@@ -87,7 +87,7 @@ class TrainingConfigurationParserFactory(AbstractConfigurationParserFactory):
         with open(path, 'r') as config_file:
             try:
                 config = yaml.load(config_file, Loader=yaml.FullLoader)
-                config = UNet3DTestTrainingConfiguration(config["training"])
+                config = UNet3DTrainingConfiguration(config["training"])
                 return config
             except yaml.YAMLError as e:
                 logging.error(

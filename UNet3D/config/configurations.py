@@ -143,10 +143,10 @@ class RunningConfiguration(Configuration):
         self._world_size = world_size
 
 
-class UNet3DTestDatasetConfiguration(DatasetConfiguration):
+class UNet3DDatasetConfiguration(DatasetConfiguration):
 
     def __init__(self, config: dict):
-        super(UNet3DTestDatasetConfiguration, self).__init__(config)
+        super(UNet3DDatasetConfiguration, self).__init__(config)
 
         self._path = config["path"]
         self._training_patch_size = config["training"]["patch_size"]
@@ -216,10 +216,10 @@ class UNet3DTestDatasetConfiguration(DatasetConfiguration):
         return self._validation_patch_step
 
 
-class UNet3DTestTrainingConfiguration(TrainingConfiguration):
+class UNet3DTrainingConfiguration(TrainingConfiguration):
 
     def __init__(self, config: dict):
-        super(UNet3DTestTrainingConfiguration, self).__init__(config)
+        super(UNet3DTrainingConfiguration, self).__init__(config)
         self._debug = config["debug"]
         self._batch_size = config["batch_size"]
         self._checkpoint_every = config["checkpoint_every"]
@@ -320,7 +320,7 @@ class VariableConfiguration(Configuration):
         return self._lambda
 
 
-class UNet3DTestTrainerConfig(TrainerConfiguration):
+class UNet3DTrainerConfig(TrainerConfiguration):
     def __init__(self, checkpoint_every: int, max_epoch: int, criterion: Union[List[torch.nn.Module], torch.nn.Module],
                  metric,
                  model: Union[List[torch.nn.Module], torch.nn.Module],
@@ -328,8 +328,8 @@ class UNet3DTestTrainerConfig(TrainerConfiguration):
                  dataloader: Union[List[torch.utils.data.DataLoader], torch.utils.data.DataLoader],
                  running_config: RunningConfiguration, variables: Configuration, logger_config: Configuration,
                  debug: bool) -> None:
-        super(UNet3DTestTrainerConfig, self).__init__(checkpoint_every, max_epoch, criterion, metric, model,
-                                                      optimizer, dataloader, running_config)
+        super(UNet3DTrainerConfig, self).__init__(checkpoint_every, max_epoch, criterion, metric, model,
+                                                  optimizer, dataloader, running_config)
         self._variables = variables
         self._logger_config = logger_config
         self._debug = debug

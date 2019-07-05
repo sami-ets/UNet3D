@@ -18,7 +18,7 @@ import argparse
 
 from UNet3D.training.trainer import UNet3DTestTrainer
 from UNet3D.utils.initializer import Initializer
-from UNet3D.config.configurations import RunningConfiguration, UNet3DTestTrainerConfig
+from UNet3D.config.configurations import RunningConfiguration, UNet3DTrainerConfig
 
 
 def main(config_path: str, running_config: RunningConfiguration):
@@ -41,17 +41,17 @@ def main(config_path: str, running_config: RunningConfiguration):
     dataloader = init.create_dataloader(dataset, training_config.batch_size, running_config.num_workers,
                                         dataset_config.validation_split, is_distributed=running_config.is_distributed)
 
-    train_config = UNet3DTestTrainerConfig(checkpoint_every=training_config.checkpoint_every,
-                                           max_epoch=training_config.max_iterations,
-                                           criterion=criterions,
-                                           metric=metrics,
-                                           model=models,
-                                           optimizer=optimizers,
-                                           dataloader=dataloader,
-                                           running_config=running_config,
-                                           variables=variables,
-                                           logger_config=logger_config,
-                                           debug=training_config.debug)
+    train_config = UNet3DTrainerConfig(checkpoint_every=training_config.checkpoint_every,
+                                       max_epoch=training_config.max_iterations,
+                                       criterion=criterions,
+                                       metric=metrics,
+                                       model=models,
+                                       optimizer=optimizers,
+                                       dataloader=dataloader,
+                                       running_config=running_config,
+                                       variables=variables,
+                                       logger_config=logger_config,
+                                       debug=training_config.debug)
 
     trainer = UNet3DTestTrainer(train_config, None)
 
