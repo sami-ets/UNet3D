@@ -61,7 +61,6 @@ class ModelTrainer(Trainer):
     def train(self):
         for epoch in range(self.config.max_epoch):
             self._train_epoch(epoch)
-            self._validate_epoch(epoch)
 
         return self.config.model
 
