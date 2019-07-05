@@ -1,0 +1,50 @@
+segmenter:
+  name: "UNet3D"
+  type: "UNet3D"
+  feature_maps: 128
+  in_channels: 1
+  out_channels: 4
+  num_levels: 4
+  conv_kernel_size: 3
+  pool_kernel_size: 2
+  pooling_type: "MaxPool3d"
+  num_groups: !!null
+  padding: !!python/tuple [1, 1, 1, 1, 1, 1]
+  activation: "ReLU"
+  interpolation: True
+  scale_factor: !!python/tuple [2, 2, 2] # Used as the multiplier for the image H/W/D in torch.nn.Upsample or as stride in case of ConvTranspose3d, must reverse the MaxPool3d operation from the corresponding encoder.
+
+dataset:
+  MRBrainS:
+    path: "/home/pierre-luc-delisle/Documents/Research/Code/UNet3D/data/MRBrainS_2013"
+    validation_split: 0.2
+    training:
+      patch_size: [1, 32, 32, 32]
+      step: [1, 8, 8, 8]
+    validation:
+      patch_size: [1, 32, 32, 32]
+      step: [1, 8, 8, 8]
+
+training:
+  debug: False
+  batch_size: 24
+  checkpoint_every: 50
+  max_epochs: 150
+  criterion: "DiceLoss"
+  metrics:
+    dice:
+      num_classes: 4
+      reduction: "mean"
+      ignore_index: !!null
+      average: !!null
+  optimizer:
+    segmenter:
+      type: "Adam"
+      lr: 0.0001
+
+variables:
+  lambda: 0.5
+
+logger:
+  path: "/home/pierre-luc-delisle/Documents/ml/logs"
+  log_after_iterations: 20
