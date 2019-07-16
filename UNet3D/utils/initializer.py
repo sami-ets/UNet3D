@@ -15,13 +15,13 @@
 #  ==============================================================================
 import torch
 import os
-import logging
 
 from samitorch.factories.factories import CriterionFactory, ModelFactory, OptimizerFactory, MetricsFactory
 from samitorch.factories.enums import *
 from samitorch.inputs.datasets import NiftiPatchDataset
 from samitorch.inputs.transformers import ToNDTensor
 from samitorch.inputs.dataloaders import DataLoader
+from samitorch.inputs.utils import sample_collate
 from torchvision.transforms import Compose
 
 from UNet3D.factories.parsers import *
@@ -117,9 +117,11 @@ class Initializer(object):
             return DataLoader(dataset, shuffle=True, validation_split=validation_split,
                               num_workers=num_workers,
                               batch_size=batch_size,
-                              samplers=(train_sampler, valid_sampler))
+                              samplers=(train_sampler, valid_sampler),
+                              collate_fn=sample_collate)
         else:
             self._logger.info("Initializing Dataloader.")
             return DataLoader(dataset, shuffle=True, validation_split=validation_split,
                               num_workers=num_workers,
-                              batch_size=batch_size)
+                              batch_size=batch_size,
+                              collate_fn=sample_collate)

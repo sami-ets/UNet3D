@@ -31,6 +31,7 @@ except ImportError:
 from samitorch.metrics.gauges import RunningAverageGauge
 from samitorch.training.trainer import Trainer
 from samitorch.utils.utils import to_onehot
+from samitorch.inputs.batch import Batch
 
 from UNet3D.utils.logger import Logger
 
@@ -68,12 +69,12 @@ class ModelTrainer(Trainer):
         for iteration, batch in enumerate(self.config.dataloader, 0):
             self._at_iteration_begin()
 
-            current_batch = self._prepare_batch(batch={"X": batch[X], "y": batch[Y]}, input_device=torch.device('cpu'),
+            current_batch = self._prepare_batch(batch=batch, input_device=torch.device('cpu'),
                                                 output_device=self.config.running_config.device)
 
             out = self._train_batch(current_batch)
 
-            self.config.metric.update((out["output"], current_batch["y"]))
+            self.config.metric.update((out["output"], current_batch.y))
 
             if iteration % self.config.logger_config.frequency == 0:
                 metric = self.config.metric.compute().cuda()
@@ -82,11 +83,11 @@ class ModelTrainer(Trainer):
                     out["loss"] = self._reduce_tensor(out["loss"].data)
                     metric = self._reduce_tensor(metric.data)
 
-                self._training_metric.update(metric.item(), current_batch["X"].size(0))
-                self._training_loss.update(out["loss"].item(), current_batch["X"].size(0))
+                self._training_metric.update(metric.item(), current_batch.x.size(0))
+                self._training_loss.update(out["loss"].item(), current_batch.x.size(0))
 
                 if self.config.running_config.local_rank == 0:
-                    self._logger.log_images(batch[X], batch[Y],
+                    self._logger.log_images(batch.x, batch.y,
                                             torch.argmax(torch.nn.functional.softmax(out["output"], dim=1), dim=1,
                                                          keepdim=True), self._global_step)
 
@@ -100,11 +101,11 @@ class ModelTrainer(Trainer):
 
         self._at_epoch_end(epoch_num)
 
-    def _train_batch(self, data_dict: dict, fold=0, **kwargs):
-        X_s = self.config.model(data_dict["X"])
+    def _train_batch(self, batch: Batch, fold=0, **kwargs):
+        X_s = self.config.model(batch.x)
 
         loss_S_X = self.config.criterion(torch.nn.functional.softmax(X_s, dim=1),
-                                         to_onehot(data_dict["y"], num_classes=4))
+                                         to_onehot(batch.y, num_classes=4))
 
         with amp.scale_loss(loss_S_X, self.config.optimizer):
             loss_S_X.backward()
@@ -119,27 +120,27 @@ class ModelTrainer(Trainer):
 
         with torch.no_grad():
             for i, batch in enumerate(self.config.dataloader.get_validation_dataloader()):
-                current_batch = self._prepare_batch(batch={"X": batch[X], "y": batch[Y]},
+                current_batch = self._prepare_batch(batch=batch,
                                                     input_device=torch.device('cpu'),
                                                     output_device=self.config.running_config.device)
                 out = self._validate_batch(current_batch)
 
-                self._validation_loss.update(out["loss"].item(), current_batch["X"].size(0))
+                self._validation_loss.update(out["loss"].item(), current_batch.x.size(0))
 
-                self.config.metric.update((out["output"], current_batch["y"]))
+                self.config.metric.update((out["output"], current_batch.y))
 
-            self._validation_metric.update(self._compute_metric(), current_batch["X"].size(0))
+            self._validation_metric.update(self._compute_metric(), current_batch.x.size(0))
 
             if self.config.running_config.local_rank == 0:
                 self._log({"loss": self._validation_loss.average,
                            "metric": self._validation_metric.average,
                            "epoch_num": epoch_num}, training=False)
 
-    def _validate_batch(self, data_dict: dict):
-        X_s = self.config.model(data_dict["X"])
+    def _validate_batch(self, batch: Batch):
+        X_s = self.config.model(batch.x)
 
         loss_S_X = self.config.criterion(torch.nn.functional.softmax(X_s, dim=1),
-                                         to_onehot(data_dict["y"], num_classes=4))
+                                         to_onehot(batch.y, num_classes=4))
 
         if self.config.running_config.is_distributed:
             loss_S_X = self._reduce_tensor(loss_S_X.data)
@@ -147,9 +148,12 @@ class ModelTrainer(Trainer):
         return {"loss": loss_S_X, "output": X_s}
 
     @staticmethod
-    def _prepare_batch(batch: dict, input_device: torch.device, output_device: torch.device):
-        X, y = batch["X"], batch["y"]
-        return {"X": X.to(device=output_device), "y": y.squeeze(1).to(device=output_device).long()}
+    def _prepare_batch(batch: Batch, input_device: torch.device, output_device: torch.device):
+        transformed_batch = Batch.from_batch(batch)
+        transformed_batch.x = transformed_batch.x.to(device=output_device)
+        transformed_batch.y = transformed_batch.y.long().to(device=output_device)
+
+        return batch.update(transformed_batch)
 
     def _at_training_begin(self, *args, **kwargs):
         self._initialize_model(self.config.model)
