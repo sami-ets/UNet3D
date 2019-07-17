@@ -74,7 +74,7 @@ class ModelTrainer(Trainer):
 
             out = self._train_batch(current_batch)
 
-            self.config.metric.update((out["output"], current_batch.y))
+            self.config.metric.update((out["output"], current_batch.y.long()))
 
             if iteration % self.config.logger_config.frequency == 0:
                 metric = self.config.metric.compute().cuda()
@@ -87,7 +87,7 @@ class ModelTrainer(Trainer):
                 self._training_loss.update(out["loss"].item(), current_batch.x.size(0))
 
                 if self.config.running_config.local_rank == 0:
-                    self._logger.log_images(batch.x, batch.y,
+                    self._logger.log_images(batch.x, batch.y.long(),
                                             torch.argmax(torch.nn.functional.softmax(out["output"], dim=1), dim=1,
                                                          keepdim=True), self._global_step)
 
@@ -105,7 +105,7 @@ class ModelTrainer(Trainer):
         X_s = self.config.model(batch.x)
 
         loss_S_X = self.config.criterion(torch.nn.functional.softmax(X_s, dim=1),
-                                         to_onehot(batch.y, num_classes=4))
+                                         to_onehot(batch.y.long(), num_classes=4))
 
         with amp.scale_loss(loss_S_X, self.config.optimizer):
             loss_S_X.backward()
@@ -127,7 +127,7 @@ class ModelTrainer(Trainer):
 
                 self._validation_loss.update(out["loss"].item(), current_batch.x.size(0))
 
-                self.config.metric.update((out["output"], current_batch.y))
+                self.config.metric.update((out["output"], current_batch.y.long()))
 
             self._validation_metric.update(self._compute_metric(), current_batch.x.size(0))
 
@@ -140,7 +140,7 @@ class ModelTrainer(Trainer):
         X_s = self.config.model(batch.x)
 
         loss_S_X = self.config.criterion(torch.nn.functional.softmax(X_s, dim=1),
-                                         to_onehot(batch.y, num_classes=4))
+                                         to_onehot(batch.y.long(), num_classes=4))
 
         if self.config.running_config.is_distributed:
             loss_S_X = self._reduce_tensor(loss_S_X.data)
@@ -149,11 +149,7 @@ class ModelTrainer(Trainer):
 
     @staticmethod
     def _prepare_batch(batch: Batch, input_device: torch.device, output_device: torch.device):
-        transformed_batch = Batch.from_batch(batch)
-        transformed_batch.x = transformed_batch.x.to(device=output_device)
-        transformed_batch.y = transformed_batch.y.long().to(device=output_device)
-
-        return batch.update(transformed_batch)
+        return batch.update(batch, output_device)
 
     def _at_training_begin(self, *args, **kwargs):
         self._initialize_model(self.config.model)
