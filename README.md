@@ -27,7 +27,7 @@ for establishing baselines for medical image segmentation tasks. The objective o
 * Pierre-Luc Delisle - [pldelisle](https://github.com/pldelisle) 
 
 ## References
-``
+```
 @article{RN10,
    author = {Çiçek, Özgün and Abdulkadir, Ahmed and Lienkamp, Soeren S. and Brox, Thomas and Ronneberger, Olaf},
    title = {3D U-Net: Learning Dense Volumetric Segmentation from Sparse Annotation},
@@ -37,7 +37,7 @@ for establishing baselines for medical image segmentation tasks. The objective o
    year = {2016},
    type = {Journal Article}
 }
-``
+```
 
 
 ## Setup
